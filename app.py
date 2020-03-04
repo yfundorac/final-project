@@ -13,7 +13,6 @@ from sklearn.ensemble import RandomForestClassifier
 import plotly.express as px
 
 
-@st.cache
 def loadData():
 	df = pd.read_csv("train-bank-campaign-data.csv")
 	return df
@@ -198,26 +197,37 @@ if __name__ == "__main__":
 # Visualization Section
 
 data = loadData()
-
-campaign_yes = data.query("y == 'yes'")
-
-campaign_no = data.query("y == 'no'")
+cat_data = data.select_dtypes(include=['object']).copy()
+numerical_data = data.select_dtypes(include=['int', 'float']).copy()
+campaign_yes = cat_data.query("y == 'yes'")
+campaign_no = cat_data.query("y == 'no'")
+campaign_one = data.query("campaign == 1")
 
 choose_viz = st.sidebar.selectbox("Choose the Visualization", 
-["NONE","Observations by Campaign", "Observations by Target", "Campaigns when Target is Yes", "Campaigns when Target is No"])
+["NONE", "Observations by Target", "Observations when Target Yes vs No"])
 
-if(choose_viz == "Observations by Campaign"):
-	fig = px.histogram(data['campaign'], x ='campaign')
-	st.plotly_chart(fig)
+if(choose_viz == "Histograms - Categorical data"):
+	for col in cat_data.columns:
+		fig = px.histogram(data[col], x =col, title = f'{col}')
+		st.plotly_chart(fig)
+
+if(choose_viz == "Boxplot - Numerical data"):
+	for col in numerical_data.columns:
+		fig = px.histogram(data[col], x =col, title = f'{col}')
+		st.plotly_chart(fig)
+
+elif(choose_viz == "Observations when Target Yes vs No"):
+	for col in cat_data.columns:
+		fig = px.histogram(campaign_yes[col], x =col, title = f'{col}_yes')
+		fig1 = px.histogram(campaign_no[col], x =col, title = f'{col}_no')
+		st.plotly_chart(fig)
+		st.plotly_chart(fig1)
 
 elif(choose_viz == "Observations by Target"):
 	fig = px.histogram(data['y'], x ='y')
 	st.plotly_chart(fig)
 
-elif(choose_viz == "Campaigns when Target is Yes"):
-	fig = px.histogram(campaign_yes['campaign'], x ='campaign')
-	st.plotly_chart(fig)
 
-elif(choose_viz == "Campaigns when Target is No"):
-	fig = px.histogram(campaign_no['campaign'], x ='campaign')
-	st.plotly_chart(fig)
+# outliers (demographics)
+# balance data (yes, no) - from scipy.stats import ttest_ind #independent samples
+
