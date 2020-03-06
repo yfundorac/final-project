@@ -16,7 +16,6 @@ import plotly.express as px
 
 
 def loadData():
-	#df = pd.read_csv("train-bank-campaign-data.csv")
 	X = pd.read_csv("features.csv")
 	y = pd.read_csv("target.csv")['target']
 	return X, y
@@ -24,62 +23,19 @@ def loadData():
 def loadRawData():
 	df = pd.read_csv("train-bank-campaign-data.csv")
 	return df
-	
-# Basic and common preprocessing required for all the models.  
-# def preprocessing(df):
-    # # Drop columns that don't contain useful information for our predictions
-    # df.drop(columns = ['id_var', 'duration'], inplace = True)
 
-	# # Assign X (independent features) and y (dependent feature i.e. df['y'] column in dataset)
-    # X = df.drop(columns = 'target')
-    # y = df['target']
-
-    # # Drop highly correlated features
-    # corr_matrix = X.corr().abs()
-    # tri = np.triu(np.ones(corr_matrix.shape), k = 1).astype(np.bool)
-    # upper = corr_matrix.where(tri)
-    # to_drop = [col for col in upper.columns if any(upper[col] > 0.9)] # Find index of feature columns with correlation greater than 90%
-    # X.drop(X[to_drop], axis = 1, inplace = True)
-
-    # # X and y has Categorical data hence needs Encoding
-    # X = hotEncoding(X)
-    # le = LabelEncoder()
-    # y = le.fit_transform(y)
-
-
-
-	# 1. Splitting X,y into Train & Test
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
-    # X_train.sort_index(axis=1, inplace=True)
-    # X_test.sort_index(axis=1, inplace=True)
-    # return X_train, X_test, y_train, y_test
-
-# def hotEncoding(df):
-#     cat_data = df.select_dtypes(include=['object']).copy()
-#     cat_data_dummies = pd.get_dummies(df[cat_data.columns])
-#     df.drop(columns = cat_data.columns, inplace = True)
-#     return pd.concat([cat_data_dummies, df], axis=1)
-
-#@st.cache(suppress_st_warning=True)
 def logisticRegression(X_train, y_train):
 	log_regr = LogisticRegression(solver = 'lbfgs')
 	scores = cross_val_score(log_regr, X_train, y_train, cv=5)
 	log_regr.fit(X_train, y_train)
-	# y_pred = log_regr.predict(X_test)
-	# score = metrics.accuracy_score(y_test, y_pred) * 100
-	# report = classification_report(y_test, y_pred)
 	return scores.mean(), log_regr
-	#return score, report, log_regr
 
 #@st.cache(suppress_st_warning=True)
 def randomForestClassifier(X_train, y_train):
+	# Instantiate the Classifier and fit the model.
 	rf = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
 	scores = cross_val_score(rf, X_train, y_train, cv=5)
 	rf.fit(X_train, y_train)
-	# y_pred = rf.predict(X_test)
-	# score = metrics.accuracy_score(y_test, y_pred) * 100
-	#report = classification_report(y_test, y_pred)
-
 	return scores.mean(), rf
 
 # Training Neural Network for Classification.
@@ -89,42 +45,31 @@ def neuralNet(X_train, y_train):
 	scaler = StandardScaler()  
 	scaler.fit(X_train)  
 	X_train = scaler.transform(X_train)  
-	#X_test = scaler.transform(X_test)
 	# Instantiate the Classifier and fit the model.
 	nn = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
 	scores = cross_val_score(nn, X_train, y_train, cv=5)
 	nn.fit(X_train, y_train)
-	# y_pred = nn.predict(X_test)
-	# score1 = metrics.accuracy_score(y_test, y_pred) * 100
-	# report = classification_report(y_test, y_pred)
-	
-	#return score1, report, nn
 	return scores.mean(), nn
 
 # Training KNN Classifier
 #@st.cache(suppress_st_warning=True)
 def Knn_Classifier(X_train, y_train):
+	# Instantiate the Classifier and fit the model.
 	knn = KNeighborsClassifier(n_neighbors=5)
 	knn.fit(X_train, y_train)
 	scores = cross_val_score(knn, X_train, y_train, cv=5)
-	# y_pred = knn.predict(X_test)
-	# score = metrics.accuracy_score(y_test, y_pred) * 100
-	# report = classification_report(y_test, y_pred)
-
-	# return score, report, knn
 	return scores.mean(), knn
 
 def main():
 	st.title("Prediction of Marketing Campaign result using various Machine Learning Classification Algorithms")
 	data = loadRawData()
-	# X_train, X_test, y_train, y_test = preprocessing(data)
 	X_train, y_train = loadData()
 
 
 	# Insert Check-Box to show the snippet of the data.
 	if st.checkbox('Show Raw Data'):
 		st.subheader("Showing raw data---->>>")	
-		st.write(data.tail(20))
+		st.write(data.tail(10))
 
 
 	# ML Section
@@ -132,33 +77,24 @@ def main():
 		["NONE","Logistic Regression", "Neural Network", "Random Forest", "K-Nearest Neighbours"])
 
 	if(choose_model == "Logistic Regression"):
-		#score, report, lr = logisticRegression(X_train, X_test, y_train, y_test)
 		score, lr = logisticRegression(X_train, y_train)
 		st.text("Accuracy of Logistic Regression model is: ")
 		st.write(score,"%")
-		# st.text("Report of Logistic Regression model is: ")
-		# st.write(report)
 
 	elif(choose_model == "Random Forest"):
 		score, rf = randomForestClassifier(X_train, y_train)
 		st.text("Accuracy of Random Forest model is: ")
 		st.write(score,"%")
-		# st.text("Report of Random Forest model is: ")
-		# st.write(report)
 
 	elif(choose_model == "Neural Network"):
 		score, nn = neuralNet(X_train, y_train)
 		st.text("Accuracy of Neural Network model is: ")
 		st.write(score,"%")
-		# st.text("Report of Neural Network model is: ")
-		# st.write(report)
 
 	elif(choose_model == "K-Nearest Neighbours"):
 		score, knn = Knn_Classifier(X_train, y_train)
 		st.text("Accuracy of K-Nearest Neighbour model is: ")
 		st.write(score,"%")
-		# st.text("Report of K-Nearest Neighbour model is: ")
-		# st.write(report)
 
 	if st.sidebar.checkbox("Want to predict on your own Input? It is recommended to have a look at dataset to enter values in below tabs than just typing in random values"):
 		age = st.sidebar.text_input("Enter the age: ")
@@ -172,7 +108,6 @@ def main():
 		month = st.sidebar.selectbox("Select the month: ", data['month'].unique())
 		day_of_week = st.sidebar.selectbox("Select the day of week: ", data['day_of_week'].unique())
 		campaign = st.sidebar.text_input("Enter the campaign: ")
-		#pdays = st.sidebar.text_input("Enter the pdays: ")
 		previous = st.sidebar.text_input("Enter the previous: ")
 		poutcome = st.sidebar.selectbox("Select the poutcome: ", data['poutcome'].unique())
 		emp_var_rate = st.sidebar.text_input("Enter the emp var rate: ")
@@ -189,7 +124,6 @@ def main():
 			for col in cat_data.columns:
 				df[col] = np.where(df[col] == 0, 0, 1)
 			user_prediction_data = np.array(df.iloc[-1].values).reshape(1,-1)
-			#st.write(user_prediction_data)
 
 			if(choose_model == "Logistic Regression"):
 				pred = lr.predict(user_prediction_data)
@@ -228,11 +162,6 @@ if(choose_viz == "Histograms - Categorical data"):
 	for col in cat_data.columns:
 		fig = px.histogram(data[col], x =col, title = f'{col}')
 		st.plotly_chart(fig)
-
-# if(choose_viz == "Histograms - Numerical data"):
-# 	for col in numerical_data.columns:
-# 		fig = px.histogram(data[col], x =col, title = f'{col}')
-# 		st.plotly_chart(fig)
 
 elif(choose_viz == "Target Yes vs No"):
 	for col in cat_data.columns:
