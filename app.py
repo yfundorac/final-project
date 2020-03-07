@@ -60,6 +60,24 @@ def Knn_Classifier(X_train, y_train):
 	scores = cross_val_score(knn, X_train, y_train, cv=5)
 	return scores.mean(), knn
 
+def Print_Selected_Values(age, job, marital, education, default, housing, loan, contact, month, day_of_week, campaign, previous, poutcome, emp_var_rate, cons_price_idx, cons_conf_idx):
+	st.write(f'Age: {age}')
+	st.write(f'Job: {job}')
+	st.write(f'Marital: {marital}')
+	st.write(f'Education: {education}')
+	st.write(f'Default: {default}')
+	st.write(f'Housing: {housing}')
+	st.write(f'Loan: {loan}')
+	st.write(f'Contact: {contact}')
+	st.write(f'Month: {month}')
+	st.write(f'Day of week: {day_of_week}')
+	st.write(f'Campaign: {campaign}')
+	st.write(f'Previous: {previous}')
+	st.write(f'Poutcome: {poutcome}')
+	st.write(f'Emp var rate: {emp_var_rate}')
+	st.write(f'Cons price idx: {cons_price_idx}')
+	st.write(f'Cons conf idx: {cons_conf_idx}')
+
 def main():
 	st.title("Prediction of Marketing Campaign result using various Machine Learning Classification Algorithms")
 	data = loadRawData()
@@ -97,6 +115,7 @@ def main():
 		st.write(score,"%")
 
 	if st.sidebar.checkbox("Want to predict on your own Input? It is recommended to have a look at dataset to enter values in below tabs than just typing in random values"):
+		choose_default_var = st.sidebar.selectbox("Fill variables", ["NONE","Positive sample", "Negative sample"])
 		age = st.sidebar.text_input("Enter the age: ")
 		job = st.sidebar.selectbox("Select the job: ", data['job'].unique())
 		marital = st.sidebar.selectbox("Select the end station number: ", data['marital'].unique())
@@ -113,6 +132,45 @@ def main():
 		emp_var_rate = st.sidebar.text_input("Enter the emp var rate: ")
 		cons_price_idx = st.sidebar.text_input("Enter the cons price idx: ")
 		cons_conf_idx = st.sidebar.text_input("Enter the cons conf idx: ")
+		values_by_default = False
+		
+		if choose_default_var == "Positive sample":
+			age = 38
+			job = 'housemaid'	
+			marital = 'divorced'
+			education =	'high.school'
+			default = 'no'
+			housing = 'yes'
+			loan = 'yes'
+			contact = 'cellular'
+			month =	'nov'
+			day_of_week = 'thu'
+			campaign = 1
+			previous = 0
+			poutcome = 'nonexistent'
+			emp_var_rate = -1.1000			
+			cons_price_idx = 94.7670
+			cons_conf_idx = -50.8000
+			values_by_default = True
+		elif(choose_default_var == "Negative sample"):
+			age = 57
+			job = 'retired'	
+			marital = 'married'
+			education =	'professional.course'
+			default = 'no'
+			housing = 'yes'
+			loan = 'no'
+			contact = 'cellular'
+			month =	'nov'
+			day_of_week = 'thu'
+			campaign = 6
+			previous = 0
+			poutcome = 'nonexistent'
+			emp_var_rate = -1.1000			
+			cons_price_idx = 94.7670
+			cons_conf_idx = -50.8000
+			values_by_default = True
+
 		submit = st.sidebar.button('Predict')
 		if submit:
 			df = pd.DataFrame([[int(age),job,marital,education,default,housing,loan,contact,month,day_of_week,int(campaign),int(previous),poutcome,float(emp_var_rate),float(cons_price_idx),float(cons_conf_idx)]],
@@ -127,22 +185,30 @@ def main():
 
 			if(choose_model == "Logistic Regression"):
 				pred = lr.predict(user_prediction_data)
-				st.write("The Predicted Class is: ", pred) # Inverse transform to get the original dependent value.
+				st.write("The Predicted Class is: ", "NO" if pred[0] == 0  else "YES") # Inverse transform to get the original dependent value.
+				if values_by_default:
+					Print_Selected_Values(age, job, marital, education, default, housing, loan, contact, month, day_of_week, campaign, previous, poutcome, emp_var_rate, cons_price_idx, cons_conf_idx)
 			
 			elif(choose_model == "Neural Network"):
 				scaler = StandardScaler()  
 				scaler.fit(X_train)  
 				user_prediction_data = scaler.transform(user_prediction_data)	
 				pred = nn.predict(user_prediction_data)
-				st.write("The Predicted Class is: ", pred) # Inverse transform to get the original dependent value. 
+				st.write("The Predicted Class is: ", "NO" if pred[0] == 0  else "YES") # Inverse transform to get the original dependent value. 
+				if values_by_default:
+					Print_Selected_Values(age, job, marital, education, default, housing, loan, contact, month, day_of_week, campaign, previous, poutcome, emp_var_rate, cons_price_idx, cons_conf_idx)
 
 			elif(choose_model == "K-Nearest Neighbours"):
 				pred = knn.predict(user_prediction_data)
-				st.write("The Predicted Class is: ", pred) # Inverse transform to get the original dependent value. 
+				st.write("The Predicted Class is: ", "NO" if pred[0] == 0  else "YES") # Inverse transform to get the original dependent value. 
+				if values_by_default:
+					Print_Selected_Values(age, job, marital, education, default, housing, loan, contact, month, day_of_week, campaign, previous, poutcome, emp_var_rate, cons_price_idx, cons_conf_idx)
 
 			elif(choose_model == "Random Forest"):
 				pred = rf.predict(user_prediction_data)
-				st.write("The Predicted Class is: ", pred) # Inverse transform to get the original dependent value. 
+				st.write("The Predicted Class is: ", "NO" if pred[0] == 0  else "YES") # Inverse transform to get the original dependent value. 
+				if values_by_default:
+					Print_Selected_Values(age, job, marital, education, default, housing, loan, contact, month, day_of_week, campaign, previous, poutcome, emp_var_rate, cons_price_idx, cons_conf_idx)
 
 if __name__ == "__main__":
 	main()
